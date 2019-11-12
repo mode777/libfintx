@@ -28,40 +28,39 @@ using System.Linq;
 
 namespace libfintx
 {
-    public static class BPD
+    public class BPD
     {
-        public static string Value { get; set; }
+        public string Value { get; set; }
 
-        public static HIPINS HIPINS { get; set; }
+        public HIPINS HIPINS { get; set; }
 
-        public static List<HITANS> HITANS { get; set; }
+        public List<HITANS> HITANS { get; set; }
 
-        public static HICAZS HICAZS { get; set; }
+        public HICAZS HICAZS { get; set; }
 
-        public static void Reset()
+        public static BPD Parse_BPD(string str)
         {
-            ReflectionUtil.ResetStaticFields(typeof(BPD));
-        }
+            var result = new BPD();
 
-        public static void Parse_BPD(string bpd)
-        {
-            Value = bpd;
+            result.Value = str;
 
-            var lines = bpd.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var lines = str.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
             var hipins = lines.FirstOrDefault(l => l.StartsWith("HIPINS"));
-            HIPINS = HIPINS.Parse_HIPINS(hipins ?? string.Empty);
+            result.HIPINS = HIPINS.Parse_HIPINS(hipins ?? string.Empty);
 
-            HITANS = new List<HITANS>();
+            result.HITANS = new List<HITANS>();
             var list = lines.Where(l => l.StartsWith("HITANS"));
             foreach (var hitans in list)
             {
                 var item = libfintx.HITANS.Parse_HITANS(hitans);
-                HITANS.Add(item);
+                result.HITANS.Add(item);
             }
 
             var hicazs = lines.FirstOrDefault(l => l.StartsWith("HICAZS"));
-            HICAZS = HICAZS.Parse_HICAZS(hicazs);
+            result.HICAZS = HICAZS.Parse_HICAZS(hicazs);
+
+            return result;
         }
     }
 }

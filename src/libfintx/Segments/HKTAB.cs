@@ -23,6 +23,7 @@
 
 
 using libfintx.Data;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -31,18 +32,18 @@ namespace libfintx
         /// <summary>
         /// Request TAN medium name
         /// </summary>
-        public static string Init_HKTAB(ConnectionDetails connectionDetails)
+        public static async Task<string> Init_HKTAB(ConnectionContext context)
         {
             Log.Write("Starting job HKTAB: Request tan medium name");
 
             string segments = string.Empty;
 
-            segments = "HKTAB:" + SEGNUM.SETVal(3) + ":4+0+A'";
+            segments = "HKTAB:" + 3 + ":4+0+A'";
 
-            SEG.NUM = SEGNUM.SETInt(3);
+            context.SegmentNumber = 3;
 
-            string message = FinTSMessage.Create(connectionDetails.HBCIVersion, Segment.HNHBS, Segment.HNHBK, connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM);
-            return FinTSMessage.Send(connectionDetails.Url, message);
+            string message = FinTSMessage.Create(context.HBCIVersion, context.Segment.HNHBS, context.Segment.HNHBK, context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber);
+            return await FinTSMessage.SendAsync(context.Client, context.Url, message);
         }
     }
 }

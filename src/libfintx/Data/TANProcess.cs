@@ -23,7 +23,7 @@
 
 namespace libfintx
 {
-    public class TANprocess
+    public class TANProcess
     {
         public string ProcessNumber { get; set; }
         public string ProcessName { get; set; }

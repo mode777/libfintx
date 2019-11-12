@@ -23,6 +23,7 @@
 
 using libfintx.Data;
 using System;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -31,26 +32,26 @@ namespace libfintx
         /// <summary>
         /// Load prepaid
         /// </summary>
-        public static string Init_HKPPD(ConnectionDetails connectionDetails, int MobileServiceProvider, string PhoneNumber, int Amount)
+        public static async Task<string> Init_HKPPD(ConnectionContext context, int MobileServiceProvider, string PhoneNumber, int Amount)
         {
             Log.Write("Starting job HKPPD: Load prepaid");
 
-            SEG.NUM = SEGNUM.SETInt(3);
+            context.SegmentNumber = 3;
 
-            string segments = "HKPPD:" + SEG.NUM + ":2+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + "+" + MobileServiceProvider + "+" + PhoneNumber + "+" + Amount + ",:EUR'";
+            string segments = "HKPPD:" + context.SegmentNumber + ":2+" + context.IBAN + ":" + context.BIC + "+" + MobileServiceProvider + "+" + PhoneNumber + "+" + Amount + ",:EUR'";
 
-            if (Helper.IsTANRequired("HKPPD"))
+            if (Helper.IsTANRequired(context, "HKPPD"))
             {
-                SEG.NUM = SEGNUM.SETInt(4);
-                segments = HKTAN.Init_HKTAN(segments);
+                context.SegmentNumber = 4;
+                segments = HKTAN.Init_HKTAN(context, segments);
             }
 
-            string message = FinTSMessage.Create(connectionDetails.HBCIVersion, Segment.HNHBS, Segment.HNHBK, connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM);
-            var TAN = FinTSMessage.Send(connectionDetails.Url, message);
+            string message = FinTSMessage.Create(context.HBCIVersion, context.Segment.HNHBS, context.Segment.HNHBK, context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber);
+            var TAN = await FinTSMessage.SendAsync(context.Client, context.Url, message);
 
-            Segment.HITAN = Helper.Parse_String(Helper.Parse_String(TAN, "HITAN", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
+            context.Segment.HITAN = Helper.Parse_String(Helper.Parse_String(TAN, "HITAN", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
 
-            Helper.Parse_Message(TAN);
+            Helper.Parse_Message(context, TAN);
 
             return TAN;
         }

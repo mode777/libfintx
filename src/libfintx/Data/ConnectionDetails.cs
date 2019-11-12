@@ -1,12 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 
 namespace libfintx.Data
 {
-    public class ConnectionDetails
+    public class ConnectionContext
     {
+        public UPD UPD { get; set; } = new UPD();
+        public BPD BPD { get; set; } = new BPD();
+        public List<TANProcess> TANProcesses { get; set; }
+        public string SegmentId { get; set; }
+        public Segment Segment { get; set; } = new Segment();
+        public int SegmentNumber { get; set; }
+        public HttpClient Client { get; set; }
         /// <summary>
         /// Url of the HBCI/FinTS endpoint. Can be retrieved from: https://www.hbci-zka.de/institute/institut_auswahl.htm
         /// </summary>

@@ -23,6 +23,8 @@
 
 using libfintx.Data;
 using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -31,11 +33,11 @@ namespace libfintx
         /// <summary>
         /// Transactions in camt053 format
         /// </summary>
-        public static string Init_HKCAZ(ConnectionDetails connectionDetails, string FromDate, string ToDate, string Startpoint, camtVersion camtVers)
+        public static async Task<string> Init_HKCAZ(ConnectionContext context, string FromDate, string ToDate, string Startpoint, camtVersion camtVers)
         {
             string segments = string.Empty;
 
-            SEG.NUM = SEGNUM.SETInt(3);
+            context.SegmentNumber = 3;
 
             switch (camtVers)
             {
@@ -46,26 +48,26 @@ namespace libfintx
                     {
                         if (String.IsNullOrEmpty(Startpoint))
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt052 + "+N'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt052 + "+N'";
                         }
                         else
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt052 + "+N++++" + Startpoint + "'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt052 + "+N++++" + Startpoint + "'";
                         }
                     }
                     else
                     {
                         if (String.IsNullOrEmpty(Startpoint))
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt052 + "+N+" + FromDate + "+" + ToDate + "'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt052 + "+N+" + FromDate + "+" + ToDate + "'";
                         }
                         else
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt052 + "+N+" + FromDate + "+" + ToDate + "++" + Startpoint + "'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt052 + "+N+" + FromDate + "+" + ToDate + "++" + Startpoint + "'";
                         }
                     }
 
-                    SEG.NUM = SEGNUM.SETInt(3);
+                    context.SegmentNumber = 3;
                     break;
                     
                 case camtVersion.camt053:
@@ -75,22 +77,22 @@ namespace libfintx
                     {
                         if (String.IsNullOrEmpty(Startpoint))
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt053 + "+N'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt053 + "+N'";
                         }
                         else
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt053 + "+N++++" + Startpoint + "'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt053 + "+N++++" + Startpoint + "'";
                         }
                     }
                     else
                     {
                         if (String.IsNullOrEmpty(Startpoint))
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt053 + "+N+" + FromDate + "+" + ToDate + "'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt053 + "+N+" + FromDate + "+" + ToDate + "'";
                         }
                         else
                         {
-                            segments = "HKCAZ:" + SEG.NUM + ":" + Segment.HKCAZ + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + Scheme.camt053 + "+N+" + FromDate + "+" + ToDate + "++" + Startpoint + "'";
+                            segments = "HKCAZ:" + context.SegmentNumber + ":" + context.Segment.HKCAZ + "+" + context.IBAN + ":" + context.BIC + ":" + context.Account + "::280:" + context.Blz + "+" + Scheme.camt053 + "+N+" + FromDate + "+" + ToDate + "++" + Startpoint + "'";
                         }
                     }
 
@@ -100,18 +102,18 @@ namespace libfintx
                     return string.Empty;
             }
 
-            if (Helper.IsTANRequired("HKCAZ"))
+            if (Helper.IsTANRequired(context, "HKCAZ"))
             {
-                SEG.NUM = SEGNUM.SETInt(4);
-                segments = HKTAN.Init_HKTAN(segments);
+                context.SegmentNumber = 4;
+                segments = HKTAN.Init_HKTAN(context, segments);
             }
 
-            string message = FinTSMessage.Create(connectionDetails.HBCIVersion, Segment.HNHBS, Segment.HNHBK, connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM);
-            string response = FinTSMessage.Send(connectionDetails.Url, message);
+            string message = FinTSMessage.Create(context.HBCIVersion, context.Segment.HNHBS, context.Segment.HNHBK, context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber);
+            string response = await FinTSMessage.SendAsync(context.Client, context.Url, message);
 
-            Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
+            context.Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
 
-            Helper.Parse_Message(response);
+            Helper.Parse_Message(context, response);
 
             return response;
         }

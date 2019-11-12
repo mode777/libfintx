@@ -29,76 +29,71 @@ using libfintx.Util;
 
 namespace libfintx
 {
-    public static class Segment
+    public class Segment
     {
         /// <summary>
         /// TAN
         /// </summary>
-        public static string HIRMS { get; set; }
-        public static string HIRMSf { get; set; }
+        public string HIRMS { get; set; }
+        public string HIRMSf { get; set; }
 
         /// <summary>
         /// TAN
         /// </summary>
-        public static string HITANS { get; set; }
+        public string HITANS { get; set; }
 
         /// <summary>
         /// TAN
         /// </summary>
-        public static string HITAN { get; set; }
+        public string HITAN { get; set; }
 
         /// <summary>
         /// DialogID
         /// </summary>
-        public static string HNHBK { get; set; }
+        public string HNHBK { get; set; }
 
         /// <summary>
         /// SystemID
         /// </summary>
-        public static string HISYN { get; set; }
+        public string HISYN { get; set; }
 
         /// <summary>
         /// Message
         /// </summary>
-        public static string HNHBS { get; set; }
+        public string HNHBS { get; set; }
 
         /// <summary>
         /// Segment
         /// </summary>
-        public static string HISALS { get; set; }
-        public static string HISALSf { get; set; }
+        public string HISALS { get; set; }
+        public string HISALSf { get; set; }
 
         /// <summary>
         /// Transactions
         /// </summary>
-        public static string HKKAZ { get; set; }
+        public string HKKAZ { get; set; }
 
         /// <summary>
         /// Transactions camt053
         /// </summary>
-        public static string HKCAZ { get { return "1"; } }
+        public string HKCAZ { get { return "1"; } }
 
         /// <summary>
         /// TAN Medium Name
         /// </summary>
-        public static string HITAB { get; set; }
+        public string HITAB { get; set; }
 
         /// <summary>
         /// PAIN version
         /// </summary>
-        public static int HISPAS { get; set; }
+        public int HISPAS { get; set; }
 
-        public static void Reset()
-        {
-            ReflectionUtil.ResetStaticFields(typeof(Segment));
-        }
-
-        public static string AsString()
+        public string AsString()
         {
             StringBuilder sb = new StringBuilder();
 
             var propList = typeof(Segment)
-                .GetProperties(BindingFlags.Public | BindingFlags.Static)
+                .GetProperties(BindingFlags.Public)
                 .Where(f => f.PropertyType == typeof(string));
 
             foreach (var prop in propList)

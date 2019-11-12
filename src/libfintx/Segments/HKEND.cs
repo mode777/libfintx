@@ -22,6 +22,7 @@
  */
 
 using libfintx.Data;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -30,20 +31,20 @@ namespace libfintx
         /// <summary>
         /// End of dialog
         /// </summary>
-        /// <param name="connectionDetails"></param>
+        /// <param name="context"></param>
         /// <param name="dialogID"></param>
-        public static string Init_HKEND(ConnectionDetails connectionDetails, string dialogID)
+        public static async Task<string> Init_HKEND(ConnectionContext context, string dialogID)
         {
             Log.Write("Starting job HKEND: End of dialog");
 
             string segments = string.Empty;
 
-            segments = "HKEND:" + SEGNUM.SETVal(3) + "1+" + dialogID + "'";
+            segments = "HKEND:" + 3 + "1+" + dialogID + "'";
 
-            SEG.NUM = SEGNUM.SETInt(3);
+            context.SegmentNumber = 3;
 
-            string message = FinTSMessage.Create(connectionDetails.HBCIVersion, Segment.HNHBS, Segment.HNHBK, connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM);
-            return FinTSMessage.Send(connectionDetails.Url, message);
+            string message = FinTSMessage.Create(context.HBCIVersion, context.Segment.HNHBS, context.Segment.HNHBK, context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber);
+            return await FinTSMessage.SendAsync(context.Client, context.Url, message);
         }
     }
 }

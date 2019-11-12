@@ -23,6 +23,7 @@
 
 using libfintx.Data;
 using System;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -31,31 +32,31 @@ namespace libfintx
         /// <summary>
         /// Balance
         /// </summary>
-        public static string Init_HKSAL(ConnectionDetails connectionDetails)
+        public static async Task<string> Init_HKSAL(ConnectionContext context)
         {
             Log.Write("Starting job HKSAL: Request balance");
 
             string segments = string.Empty;
 
-            SEG.NUM = SEGNUM.SETInt(3);
+            context.SegmentNumber = 3;
 
-            if (Convert.ToInt16(Segment.HISALS) >= 7)
-                segments = "HKSAL:" + SEG.NUM + ":" + Segment.HISALS + "+" + connectionDetails.IBAN + ":" + connectionDetails.BIC + "+N'";
+            if (Convert.ToInt16(context.Segment.HISALS) >= 7)
+                segments = "HKSAL:" + context.SegmentNumber + ":" + context.Segment.HISALS + "+" + context.IBAN + ":" + context.BIC + "+N'";
             else
-                segments = "HKSAL:" + SEG.NUM + ":" + Segment.HISALS + "+" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+N'";
+                segments = "HKSAL:" + context.SegmentNumber + ":" + context.Segment.HISALS + "+" + context.Account + "::280:" + context.Blz + "+N'";
 
-            if (Helper.IsTANRequired("HKSAL"))
+            if (Helper.IsTANRequired(context, "HKSAL"))
             {
-                SEG.NUM = SEGNUM.SETInt(4);
-                segments = HKTAN.Init_HKTAN(segments);
+                context.SegmentNumber = 4;
+                segments = HKTAN.Init_HKTAN(context, segments);
             }
 
-            string message = FinTSMessage.Create(connectionDetails.HBCIVersion, Segment.HNHBS, Segment.HNHBK, connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM);
-            string response = FinTSMessage.Send(connectionDetails.Url, message);
+            string message = FinTSMessage.Create(context.HBCIVersion, context.Segment.HNHBS, context.Segment.HNHBK, context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber);
+            string response = await FinTSMessage.SendAsync(context.Client, context.Url, message);
 
-            Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
+            context.Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
 
-            Helper.Parse_Message(response);
+            Helper.Parse_Message(context, response);
 
             return response;
         }

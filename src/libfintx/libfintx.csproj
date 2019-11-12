@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <Folder Include="camt053\camt_053_001_02\" />
+    <Folder Include="Dialog\" />
     <Folder Include="Pain\pain_001_001_02\" />
   </ItemGroup>
 

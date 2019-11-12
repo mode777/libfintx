@@ -23,32 +23,33 @@
 
 using libfintx.Data;
 using System;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
     public static class HKSYN
     {
-        public static string Init_HKSYN(ConnectionDetails connectionDetails)
+        public static async Task<string> Init_HKSYN(ConnectionContext context)
         {
             Log.Write("Starting Synchronisation");
 
             string segments;
 
-            if (connectionDetails.HBCIVersion == 220)
+            if (context.HBCIVersion == 220)
             {
                 string segments_ = 
-                    "HKIDN:" + SEGNUM.SETVal(3) + ":2+280:" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+0+1'" +
-                    "HKVVB:" + SEGNUM.SETVal(4) + ":2+0+0+0+" + Program.ProductId + "+" + Program.Version + "'" +
-                    "HKSYN:" + SEGNUM.SETVal(5) + ":2+0'";
+                    "HKIDN:" + 3 + ":2+280:" + context.BlzPrimary + "+" + context.UserId + "+0+1'" +
+                    "HKVVB:" + 4 + ":2+0+0+0+" + Program.ProductId + "+" + Program.Version + "'" +
+                    "HKSYN:" + 5 + ":2+0'";
 
                 segments = segments_;
             }
-            else if (connectionDetails.HBCIVersion == 300)
+            else if (context.HBCIVersion == 300)
             {
                 string segments_ = 
-                    "HKIDN:" + SEGNUM.SETVal(3) + ":2+280:" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+0+1'" +
-                    "HKVVB:" + SEGNUM.SETVal(4) + ":3+0+0+0+" + Program.ProductId + "+" + Program.Version + "'" +
-                    "HKSYN:" + SEGNUM.SETVal(5) + ":3+0'";
+                    "HKIDN:" + 3 + ":2+280:" + context.BlzPrimary + "+" + context.UserId + "+0+1'" +
+                    "HKVVB:" + 4 + ":3+0+0+0+" + Program.ProductId + "+" + Program.Version + "'" +
+                    "HKSYN:" + 5 + ":3+0'";
 
                 segments = segments_;
             }
@@ -63,12 +64,12 @@ namespace libfintx
                 throw new Exception("HBCI version not supported");
             }
 
-            SEG.NUM = SEGNUM.SETInt(5);
+            context.SegmentNumber = 5;
 
-            string message = FinTSMessage.Create(connectionDetails.HBCIVersion, MSG.SETVal(1), DLG.SETVal(0), connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, SYS.SETVal(0), segments, null, SEG.NUM);
-            string response = FinTSMessage.Send(connectionDetails.Url, message);
+            string message = FinTSMessage.Create(context.HBCIVersion, "1", "0", context.BlzPrimary, context.UserId, context.Pin, SYS.SETVal(0), segments, null, context.SegmentNumber);
+            string response = await FinTSMessage.SendAsync(context.Client, context.Url, message);
 
-            Helper.Parse_Segment(connectionDetails.UserId, connectionDetails.Blz, connectionDetails.HBCIVersion, response);
+            Helper.Parse_Segment(context, response);
 
             return response;
         }

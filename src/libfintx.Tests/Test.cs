@@ -58,7 +58,7 @@ namespace libfintx
         [Fact]
         public void Test_Balance()
         {
-            var connectionDetails = new ConnectionDetails()
+            var connectionDetails = new ConnectionContext()
             {
                 Account = "xxx",
                 Blz = 76061482,
@@ -99,7 +99,7 @@ namespace libfintx
         [Fact]
         public void Test_Accounts()
         {
-            var connectionDetails = new ConnectionDetails()
+            var connectionDetails = new ConnectionContext()
             {
                 // ...
             };
@@ -121,7 +121,7 @@ namespace libfintx
         [Fact]
         public void Test_Request_TANMediumName()
         {
-            var connectionDetails = new ConnectionDetails()
+            var connectionDetails = new ConnectionContext()
             {
                 Blz = 76050101,
                 Url = "https://banking-by1.s-fints-pt-by.de/fints30",
@@ -175,7 +175,7 @@ namespace libfintx
 
             bool anonymous = false;
 
-            ConnectionDetails connectionDetails = new ConnectionDetails()
+            ConnectionContext connectionDetails = new ConnectionContext()
             {
                 AccountHolder = "Torsten Klinger",
                 Blz = 76050101,
@@ -198,16 +198,16 @@ namespace libfintx
 
             if (HBCI.Synchronization(connectionDetails).IsSuccess)
             {
-                Segment.HIRMS = "921"; // -> pushTAN
+                context.Segment.HIRMS = "921"; // -> pushTAN
 
                 var tanmediumname = libfintx.Main.RequestTANMediumName(connectionDetails);
-                Segment.HITAB = tanmediumname.Data.FirstOrDefault();
+                context.Segment.HITAB = tanmediumname.Data.FirstOrDefault();
 
                 System.Threading.Thread.Sleep(5000);
 
-                Console.WriteLine(HBCI.Transfer(connectionDetails, new TANDialog(WaitForTAN), receiver, receiverIBAN, receiverBIC, amount, usage, Segment.HIRMS, anonymous));
+                Console.WriteLine(HBCI.Transfer(connectionDetails, new TANDialog(WaitForTAN), receiver, receiverIBAN, receiverBIC, amount, usage, context.Segment.HIRMS, anonymous));
 
-                output.WriteLine(Segment.HITANS);
+                output.WriteLine(context.Segment.HITANS);
             }
 
             var timer = new System.Threading.Timer(
@@ -256,10 +256,10 @@ namespace libfintx
 
             if (HBCI.Synchronization(connectionDetails, anonymous))
             {
-                Segment.HIRMS = "972"; // -> chip-TAN               
+                context.Segment.HIRMS = "972"; // -> chip-TAN               
 
                 Image flickerImage = null;
-                output.WriteLine(EncodingHelper.ConvertToUTF8(HBCI.Transfer(connectionDetails, receiver, receiverIBAN, receiverBIC, amount, usage, Segment.HIRMS, anonymous, out flickerImage, 220, 160)));
+                output.WriteLine(EncodingHelper.ConvertToUTF8(HBCI.Transfer(connectionDetails, receiver, receiverIBAN, receiverBIC, amount, usage, context.Segment.HIRMS, anonymous, out flickerImage, 220, 160)));
 
                 Form frm = new Form();
                 frm.Size = new Size(flickerImage.Width + 5, flickerImage.Height + 5);

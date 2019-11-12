@@ -47,120 +47,121 @@ using static libfintx.HKTAB;
 using static libfintx.HKCAZ;
 using libfintx.Data;
 using System;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
     public static class Transaction
     {
-        public static string INI(ConnectionDetails connectionDetails, bool Anonymous)
+        public static async Task<string> INI(ConnectionContext context, bool Anonymous)
         {
-            return Init_INI(connectionDetails, Anonymous);
+            return await Init_INI(context, Anonymous);
         }
 
-        public static string HKEND(ConnectionDetails connectionDetails, string dialogId)
+        public static async Task<string> HKEND(ConnectionContext context, string dialogId)
         {
-            return Init_HKEND(connectionDetails, dialogId);
+            return await Init_HKEND(context, dialogId);
         }
 
-        public static string HKSYN(ConnectionDetails connectionDetails)
+        public static async Task<string> HKSYN(ConnectionContext context)
         {
-            return Init_HKSYN(connectionDetails);
+            return await Init_HKSYN(context);
         }
 
-        public static string HKSAL(ConnectionDetails connectionDetails)
+        public static async Task<string> HKSAL(ConnectionContext context)
         {
-            return Init_HKSAL(connectionDetails);
+            return await Init_HKSAL(context);
         }
 
-        public static string HKKAZ(ConnectionDetails connectionDetails, string FromDate, string ToDate, string Startpoint)
+        public static async Task<string> HKKAZ(ConnectionContext context, string FromDate, string ToDate, string Startpoint)
         {
-            return Init_HKKAZ(connectionDetails, FromDate, ToDate, Startpoint);
+            return await Init_HKKAZ(context, FromDate, ToDate, Startpoint);
         }
 
-        public static string HKCCS(ConnectionDetails connectionDetails, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage)
+        public static async Task<string> HKCCS(ConnectionContext context, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage)
         {
-            return Init_HKCCS(connectionDetails, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage);
+            return await Init_HKCCS(context, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage);
         }
 
-        public static string HKCSE(ConnectionDetails connectionDetails, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime ExecutionDay)
+        public static async Task<string> HKCSE(ConnectionContext context, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime ExecutionDay)
         {
-            return Init_HKCSE(connectionDetails, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
+            return await Init_HKCSE(context, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
         }
 
-        public static string HKCCM(ConnectionDetails connectionDetails, List<pain00100203_ct_data> PainData, string NumberofTransactions, decimal TotalAmount)
+        public static async Task<string> HKCCM(ConnectionContext context, List<pain00100203_ct_data> PainData, string NumberofTransactions, decimal TotalAmount)
         {
-            return Init_HKCCM(connectionDetails, PainData, NumberofTransactions, TotalAmount);
+            return await Init_HKCCM(context, PainData, NumberofTransactions, TotalAmount);
         }
 
-        public static string HKCME(ConnectionDetails connectionDetails, List<pain00100203_ct_data> PainData, string NumberofTransactions, decimal TotalAmount, DateTime ExecutionDay)
+        public static async Task<string> HKCME(ConnectionContext context, List<pain00100203_ct_data> PainData, string NumberofTransactions, decimal TotalAmount, DateTime ExecutionDay)
         {
-            return Init_HKCME(connectionDetails, PainData, NumberofTransactions, TotalAmount, ExecutionDay);
+            return await Init_HKCME(context, PainData, NumberofTransactions, TotalAmount, ExecutionDay);
         }
 
-        public static string HKCUM(ConnectionDetails connectionDetails, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage)
+        public static async Task<string> HKCUM(ConnectionContext context, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage)
         {
-            return Init_HKCUM(connectionDetails, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage);
+            return await Init_HKCUM(context, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage);
         }
 
-        public static string HKDSE(ConnectionDetails connectionDetails, string Payer, string PayerIBAN, string PayerBIC, decimal Amount, string Usage, 
+        public static async Task<string> HKDSE(ConnectionContext context, string Payer, string PayerIBAN, string PayerBIC, decimal Amount, string Usage,
             DateTime SettlementDate, string MandateNumber, DateTime MandateDate, string CeditorIDNumber)
         {
-            return Init_HKDSE(connectionDetails, Payer, PayerIBAN, PayerBIC, Amount, Usage, SettlementDate, MandateNumber, MandateDate, CeditorIDNumber);
+            return await Init_HKDSE(context, Payer, PayerIBAN, PayerBIC, Amount, Usage, SettlementDate, MandateNumber, MandateDate, CeditorIDNumber);
         }
 
-        public static string HKDME(ConnectionDetails connectionDetails, DateTime SettlementDate, List<pain00800202_cc_data> PainData, string NumberofTransactions, decimal TotalAmount)
+        public static async Task<string> HKDME(ConnectionContext context, DateTime SettlementDate, List<pain00800202_cc_data> PainData, string NumberofTransactions, decimal TotalAmount)
         {
-            return Init_HKDME(connectionDetails, SettlementDate, PainData, NumberofTransactions, TotalAmount);
+            return await Init_HKDME(context, SettlementDate, PainData, NumberofTransactions, TotalAmount);
         }
 
-        public static string HKPPD(ConnectionDetails connectionDetails, int MobileServiceProvider, string PhoneNumber, int Amount)
+        public static async Task<string> HKPPD(ConnectionContext context, int MobileServiceProvider, string PhoneNumber, int Amount)
         {
-            return Init_HKPPD(connectionDetails, MobileServiceProvider, PhoneNumber, Amount);
+            return await Init_HKPPD(context, MobileServiceProvider, PhoneNumber, Amount);
         }
 
-        public static string HKCDE(ConnectionDetails connectionDetails, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime FirstTimeExecutionDay, TimeUnit TimeUnit, string Rota, int ExecutionDay)
+        public static async Task<string> HKCDE(ConnectionContext context, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime FirstTimeExecutionDay, TimeUnit TimeUnit, string Rota, int ExecutionDay)
         {
-            return Init_HKCDE(connectionDetails, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, FirstTimeExecutionDay, TimeUnit, Rota, ExecutionDay);
+            return await Init_HKCDE(context, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, FirstTimeExecutionDay, TimeUnit, Rota, ExecutionDay);
         }
 
-        public static string HKCDN(ConnectionDetails connectionDetails, string OrderId, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime FirstTimeExecutionDay, TimeUnit TimeUnit, string Rota, int ExecutionDay)
+        public static async Task<string> HKCDN(ConnectionContext context, string OrderId, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime FirstTimeExecutionDay, TimeUnit TimeUnit, string Rota, int ExecutionDay)
         {
-            return Init_HKCDN(connectionDetails, OrderId, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, FirstTimeExecutionDay, TimeUnit, Rota, ExecutionDay);
+            return await Init_HKCDN(context, OrderId, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, FirstTimeExecutionDay, TimeUnit, Rota, ExecutionDay);
         }
 
-        public static string HKCDL(ConnectionDetails connectionDetails, string OrderId, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime FirstTimeExecutionDay, TimeUnit TimeUnit, string Rota, int ExecutionDay)
+        public static async Task<string> HKCDL(ConnectionContext context, string OrderId, string Receiver, string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime FirstTimeExecutionDay, TimeUnit TimeUnit, string Rota, int ExecutionDay)
         {
-            return Init_HKCDL(connectionDetails, OrderId, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, FirstTimeExecutionDay, TimeUnit, Rota, ExecutionDay);
+            return await Init_HKCDL(context, OrderId, Receiver, ReceiverIBAN, ReceiverBIC, Amount, Usage, FirstTimeExecutionDay, TimeUnit, Rota, ExecutionDay);
         }
 
-        public static string HKCSB(ConnectionDetails connectionDetails)
+        public static async Task<string> HKCSB(ConnectionContext context)
         {
-            return Init_HKCSB(connectionDetails);
+            return await Init_HKCSB(context);
         }
 
-        public static string HKCDB(ConnectionDetails connectionDetails)
+        public static async Task<string> HKCDB(ConnectionContext context)
         {
-            return Init_HKCDB(connectionDetails);
+            return await Init_HKCDB(context);
         }
 
-        public static string TAN(ConnectionDetails connectionDetails, string TAN)
+        public static async Task<string> TAN(ConnectionContext context, string TAN)
         {
-            return Send_TAN(connectionDetails, TAN);
+            return await Send_TAN(context, TAN);
         }
 
-        public static string TAN4(ConnectionDetails connectionDetails, string TAN, string MediumName)
+        public static async Task<string> TAN4(ConnectionContext context, string TAN, string MediumName)
         {
-            return Send_TAN4(connectionDetails, TAN, MediumName);
+            return await Send_TAN4(context, TAN, MediumName);
         }
 
-        public static string HKTAB(ConnectionDetails connectionDetails)
+        public static async Task<string> HKTAB(ConnectionContext context)
         {
-            return Init_HKTAB(connectionDetails);
+            return await Init_HKTAB(context);
         }
 
-        public static string HKCAZ(ConnectionDetails connectionDetails, string FromDate, string ToDate, string Startpoint, camtVersion camtVers)
+        public static async Task<string> HKCAZ(ConnectionContext context, string FromDate, string ToDate, string Startpoint, camtVersion camtVers)
         {
-            return Init_HKCAZ(connectionDetails, FromDate, ToDate, Startpoint, camtVers);
+            return await Init_HKCAZ(context, FromDate, ToDate, Startpoint, camtVers);
         }
     }
 }

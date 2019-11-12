@@ -40,10 +40,10 @@ namespace libfintx
     /// <summary>
     /// MT940 account statement
     /// </summary>
-    public static class MT940
+    public class MT940
     {
-        public static List<SWIFTStatement> SWIFTStatements;
-        private static SWIFTStatement SWIFTStatement = null;
+        private List<SWIFTStatement> SWIFTStatements;
+        private SWIFTStatement SWIFTStatement = null;
 
         private static string LTrim(string Code)
         {
@@ -59,7 +59,7 @@ namespace libfintx
             }
         }
 
-        private static void Data(string swiftTag, string swiftData)
+        private void Data(string swiftTag, string swiftData)
         {
             if (SWIFTStatement != null)
             {
@@ -493,7 +493,7 @@ namespace libfintx
             return line;
         }
 
-        public static List<SWIFTStatement> Serialize(string STA, string Account, bool writeToFile = false)
+        public List<SWIFTStatement> Serialize(string STA, string Account, bool writeToFile = false)
         {
             int LineCounter = 0;
 

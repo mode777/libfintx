@@ -31,7 +31,7 @@ namespace libfintx
         /// <param name="EncKeyLength"></param>
         /// <param name="EncSessionKeyLength"></param>
         /// <returns></returns>
-        public static bool checkForCryptSize(int EncKeyLength, int EncSessionKeyLength)
+        public static bool CheckForCryptSize(int EncKeyLength, int EncSessionKeyLength)
         {
             if (EncKeyLength == EncSessionKeyLength)
                 return true;

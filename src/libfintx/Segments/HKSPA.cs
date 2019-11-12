@@ -22,6 +22,7 @@
  */
 
 using libfintx.Data;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -30,19 +31,19 @@ namespace libfintx
         /// <summary>
         /// Request SEPA account connection
         /// </summary>
-        /// <param name="connectionDetails"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public static string Init_HKSPA(ConnectionDetails connectionDetails)
+        public static async Task<string> Init_HKSPA(ConnectionContext context)
         {
             Log.Write("Starting job HKSPA: Request SEPA account connection");
 
             string segments = string.Empty;
 
-            segments = "HKEND:" + SEGNUM.SETVal(3) + "1'";
+            segments = "HKEND:" + 3 + "1'";
 
-            SEG.NUM = SEGNUM.SETInt(3);
+            context.SegmentNumber = 3;
 
-            return FinTSMessage.Send(connectionDetails.Url, FinTSMessage.Create(connectionDetails.HBCIVersion, Segment.HNHBS, Segment.HNHBK, connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM));
+            return await FinTSMessage.SendAsync(context.Client, context.Url, FinTSMessage.Create(context.HBCIVersion, context.Segment.HNHBS, context.Segment.HNHBK, context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber));
         }
     }
 }

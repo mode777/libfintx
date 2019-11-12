@@ -24,6 +24,7 @@
 
 using libfintx.Data;
 using System;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -32,27 +33,27 @@ namespace libfintx
         /// <summary>
         /// TAN process 4
         /// </summary>
-        public static string Send_TAN4(ConnectionDetails connectionDetails, string TAN, string MediumName)
+        public static async Task<string> Send_TAN4(ConnectionContext context, string TAN, string MediumName)
         {
             Log.Write("Starting job TAN process 4");
 
             string segments = string.Empty;
 
-            var HITANS = !String.IsNullOrEmpty(Segment.HITANS.Substring(0, 1)) ? Int32.Parse(Segment.HITANS.Substring(0, 1)) : 0;
+            var HITANS = !String.IsNullOrEmpty(context.Segment.HITANS.Substring(0, 1)) ? Int32.Parse(context.Segment.HITANS.Substring(0, 1)) : 0;
 
             // Version 3
             if (HITANS == 3)
-                segments = "HKTAN:" + SEGNUM.SETVal(3) + ":" + Segment.HITANS.Substring(0, 1) + "+4+++++++" + MediumName + "'";
+                segments = "HKTAN:" + 3 + ":" + context.Segment.HITANS.Substring(0, 1) + "+4+++++++" + MediumName + "'";
             // Version 4
             if (HITANS == 4)
-                segments = "HKTAN:" + SEGNUM.SETVal(3) + ":" + Segment.HITANS.Substring(0, 1) + "+4++++++++" + MediumName + "'";
+                segments = "HKTAN:" + 3 + ":" + context.Segment.HITANS.Substring(0, 1) + "+4++++++++" + MediumName + "'";
             // Version 5
             if (HITANS == 5)
-                segments = "HKTAN:" + SEGNUM.SETVal(3) + ":" + Segment.HITANS.Substring(0, 1) + "+4++++++++++" + MediumName + "'";
+                segments = "HKTAN:" + 3 + ":" + context.Segment.HITANS.Substring(0, 1) + "+4++++++++++" + MediumName + "'";
 
-            SEG.NUM = SEGNUM.SETInt(3);
+            context.SegmentNumber = 3;
 
-            return FinTSMessage.Send(connectionDetails.Url, FinTSMessage.Create(connectionDetails.HBCIVersion, Segment.HNHBS, Segment.HNHBK, connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS + ":" + TAN, SEG.NUM));
+            return await FinTSMessage.SendAsync(context.Client, context.Url, FinTSMessage.Create(context.HBCIVersion, context.Segment.HNHBS, context.Segment.HNHBK, context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS + ":" + TAN, context.SegmentNumber));
         }
     }
 }

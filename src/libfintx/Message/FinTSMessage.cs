@@ -23,8 +23,9 @@
 
 using System;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -211,56 +212,36 @@ namespace libfintx
         /// <summary>
         /// Send FinTS message
         /// </summary>
-        /// <param name="Url"></param>
-        /// <param name="Message"></param>
+        /// <param name="url"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public static string Send(string Url, string Message)
+        public static async Task<string> SendAsync(HttpClient client, string url, string message)
         {
             Log.Write("Connect to FinTS Server");
-            Log.Write("Url: " + Url);
+            Log.Write("Url: " + url);
 
             // Warning:
             // This writes plain message incl. PIN, UserID and TAN human readable into a textfile!
             if (Trace.Enabled)
-                Trace.Write(Message);
+                Trace.Write(message);
 
             try
             {
-                var req = WebRequest.Create(Url) as HttpWebRequest;
+                var encoding = Encoding.GetEncoding("ISO-8859-1");
 
-                byte[] data = Encoding.ASCII.GetBytes(Helper.EncodeTo64(Message));
+                byte[] toEncodeAsBytes = encoding.GetBytes(message);
+                var b64 = Encoding.ASCII.GetBytes(Convert.ToBase64String(toEncodeAsBytes));
 
-                req.Method = "POST";
-                req.Timeout = 10000;
-                req.ContentType = "application/octet-stream";
-                req.ContentLength = data.Length;
-                req.KeepAlive = false;
-
-                using (Stream reqStream = req.GetRequestStream())
-                {
-                    reqStream.Write(data, 0, data.Length);
-                    reqStream.Flush();
-                }
-
-                string FinTSMessage = string.Empty;
-
-                using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
-                {
-                    using (Stream resStream = res.GetResponseStream())
-                    {
-                        using (StreamReader streamReader = new StreamReader(resStream, Encoding.UTF8))
-                        {
-                            FinTSMessage = Helper.DecodeFrom64EncodingDefault(streamReader.ReadToEnd());                            
-                        }
-                    }
-                }
+                var response = await client.PostAsync(url, new ByteArrayContent(b64));
+                var content = await response.Content.ReadAsStringAsync();
+                var responseMsg = encoding.GetString(Convert.FromBase64String(content));
 
                 // Warning:
                 // This writes plain message incl. PIN, UserID and TAN human readable into a textfile!
                 if (Trace.Enabled)
-                    Trace.Write(FinTSMessage);
+                    Trace.Write(responseMsg);
 
-                return FinTSMessage;
+                return responseMsg;
             }
             catch (Exception ex)
             {

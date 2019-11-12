@@ -24,6 +24,7 @@
 using libfintx.Data;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace libfintx
 {
@@ -32,7 +33,7 @@ namespace libfintx
         /// <summary>
         /// INI
         /// </summary>
-        public static string Init_INI(ConnectionDetails connectionDetails, bool anonymous)
+        public static async Task<string> Init_INI(ConnectionContext context, bool anonymous)
         {
             if (!anonymous)
             {
@@ -43,27 +44,27 @@ namespace libfintx
                 {
                     string segments;
 
-                    SEG.NUM = SEGNUM.SETInt(5);
+                    context.SegmentNumber = 5;
 
                     /// <summary>
                     /// INI
                     /// </summary>
-                    if (connectionDetails.HBCIVersion == 220)
+                    if (context.HBCIVersion == 220)
                     {
                         string segments_ =
-                            "HKIDN:" + SEGNUM.SETVal(3) + ":2+280:" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + Segment.HISYN + "+1'" +
-                            "HKVVB:" + SEGNUM.SETVal(4) + ":2+0+0+0+" + Program.ProductId + "+" + Program.Version + "'";
+                            "HKIDN:" + 3 + ":2+280:" + context.BlzPrimary + "+" + context.UserId + "+" + context.Segment.HISYN + "+1'" +
+                            "HKVVB:" + 4 + ":2+0+0+0+" + Program.ProductId + "+" + Program.Version + "'";
 
                         segments = segments_;
                     }
-                    else if (connectionDetails.HBCIVersion == 300)
+                    else if (context.HBCIVersion == 300)
                     {
                         string segments_ =
-                            "HKIDN:" + SEGNUM.SETVal(3) + ":2+280:" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + Segment.HISYN + "+1'" +
-                            "HKVVB:" + SEGNUM.SETVal(4) + ":3+0+0+0+" + Program.ProductId + "+" + Program.Version + "'";
+                            "HKIDN:" + 3 + ":2+280:" + context.BlzPrimary + "+" + context.UserId + "+" + context.Segment.HISYN + "+1'" +
+                            "HKVVB:" + 4 + ":3+0+0+0+" + Program.ProductId + "+" + Program.Version + "'";
 
-                        if (Segment.HITANS != null && Segment.HITANS.Substring(0, 3).Equals("6+4"))
-                            segments_ = HKTAN.Init_HKTAN(segments_);
+                        if (context.Segment.HITANS != null && context.Segment.HITANS.Substring(0, 3).Equals("6+4"))
+                            segments_ = HKTAN.Init_HKTAN(context, segments_);
 
                         segments = segments_;
                     }
@@ -78,12 +79,12 @@ namespace libfintx
                         throw new Exception("HBCI version not supported");
                     }
 
-                    var message = FinTSMessage.Create(connectionDetails.HBCIVersion, MSG.SETVal(1), DLG.SETVal(0), connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM);
-                    var response = FinTSMessage.Send(connectionDetails.Url, message);
+                    var message = FinTSMessage.Create(context.HBCIVersion, "1", "0", context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber);
+                    var response = await FinTSMessage.SendAsync(context.Client, context.Url, message);
 
-                    Helper.Parse_Segment(connectionDetails.UserId, connectionDetails.Blz, connectionDetails.HBCIVersion, response);
+                    Helper.Parse_Segment(context, response);
 
-                    Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN:", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
+                    context.Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN:", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
 
                     return response;
                 }
@@ -109,11 +110,11 @@ namespace libfintx
 
                     string segments;
 
-                    if (connectionDetails.HBCIVersion == 300)
+                    if (context.HBCIVersion == 300)
                     {
                         string segments_ = 
-                            "HKIDN:" + SEGNUM.SETVal(2) + ":2+280:" + connectionDetails.BlzPrimary + "+" + "9999999999" + "+0+0'" +
-                            "HKVVB:" + SEGNUM.SETVal(3) + ":3+0+0+1+" + Program.ProductId + "+" + Program.Version + "'";
+                            "HKIDN:" + 2 + ":2+280:" + context.BlzPrimary + "+" + "9999999999" + "+0+0'" +
+                            "HKVVB:" + 3 + ":3+0+0+1+" + Program.ProductId + "+" + Program.Version + "'";
 
                         segments = segments_;
                     }
@@ -128,12 +129,12 @@ namespace libfintx
                         throw new Exception("HBCI version not supported");
                     }
 
-                    SEG.NUM = SEGNUM.SETInt(4);
+                    context.SegmentNumber = 4;
 
-                    string message = FinTSMessageAnonymous.Create(connectionDetails.HBCIVersion, MSG.SETVal(1), DLG.SETVal(0), connectionDetails.Blz, connectionDetails.UserId, connectionDetails.Pin, SYS.SETVal(0), segments, null, SEG.NUM);
-                    string response = FinTSMessage.Send(connectionDetails.Url, message);
+                    string message = FinTSMessageAnonymous.Create(context.HBCIVersion, "1", "0", context.Blz, context.UserId, context.Pin, SYS.SETVal(0), segments, null, context.SegmentNumber);
+                    string response = await FinTSMessage.SendAsync(context.Client, context.Url, message);
 
-                    var messages = Helper.Parse_Segment(connectionDetails.UserId, connectionDetails.Blz, connectionDetails.HBCIVersion, response);
+                    var messages = Helper.Parse_Segment(context, response);
                     var result = new HBCIDialogResult(messages, response);
                     if (!result.IsSuccess)
                     {
@@ -147,12 +148,12 @@ namespace libfintx
                     /// <summary>
                     /// INI
                     /// </summary>
-                    if (connectionDetails.HBCIVersion == 300)
+                    if (context.HBCIVersion == 300)
                     {
                         string segments__ = 
-                            "HKIDN:" + SEGNUM.SETVal(3) + ":2+280:" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + Segment.HISYN + "+1'" +
-                            "HKVVB:" + SEGNUM.SETVal(4) + ":3+0+0+0+" + Program.ProductId + "+" + Program.Version + "'" +
-                            "HKSYN:" + SEGNUM.SETVal(5) + ":3+0'";
+                            "HKIDN:" + 3 + ":2+280:" + context.BlzPrimary + "+" + context.UserId + "+" + context.Segment.HISYN + "+1'" +
+                            "HKVVB:" + 4 + ":3+0+0+0+" + Program.ProductId + "+" + Program.Version + "'" +
+                            "HKSYN:" + 5 + ":3+0'";
 
                         segments = segments__;
                     }
@@ -163,14 +164,14 @@ namespace libfintx
                         throw new Exception("HBCI version not supported");
                     }
 
-                    SEG.NUM = SEGNUM.SETInt(5);
+                    context.SegmentNumber = 5;
 
-                    message = FinTSMessage.Create(connectionDetails.HBCIVersion, MSG.SETVal(1), DLG.SETVal(0), connectionDetails.BlzPrimary, connectionDetails.UserId, connectionDetails.Pin, Segment.HISYN, segments, Segment.HIRMS, SEG.NUM);
-                    response = FinTSMessage.Send(connectionDetails.Url, message);
+                    message = FinTSMessage.Create(context.HBCIVersion, "1", "0", context.BlzPrimary, context.UserId, context.Pin, context.Segment.HISYN, segments, context.Segment.HIRMS, context.SegmentNumber);
+                    response = await FinTSMessage.SendAsync(context.Client, context.Url, message);
 
-                    Helper.Parse_Segment(connectionDetails.UserId, connectionDetails.Blz, connectionDetails.HBCIVersion, response);
+                    Helper.Parse_Segment(context, response);
 
-                    Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN:", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
+                    context.Segment.HITAN = Helper.Parse_String(Helper.Parse_String(response, "HITAN:", "'").Replace("?+", "??"), "++", "+").Replace("??", "?+");
 
                     return response;
                 }
