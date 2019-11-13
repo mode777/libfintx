@@ -12,7 +12,7 @@ namespace libfintx.Sample
     {
         static async Task MainAsync(string[] args)
         {
-            var details = new ConnectionContext
+            var context = new ConnectionContext
             {
                 Client = new HttpClient(),
                 Blz = 76550000,
@@ -41,16 +41,21 @@ namespace libfintx.Sample
             //details.Pin = Console.ReadLine();
             //details.HBCIVersion = 300;
 
-            var data = await libfintx.Main.Synchronization(details);
+            var data = await libfintx.Main.Synchronization(context);
             HBCIOutput(data.Messages);
 
-            var balance = await libfintx.Main.Balance(details, new TANDialog(WaitForTAN), false);
+            var balance = await libfintx.Main.Balance(context, new TANDialog(WaitForTAN), false);
             HBCIOutput(balance.Messages);
             Console.WriteLine(balance.Data.Balance);
 
-            var results = await libfintx.Main.Transactions_camt(details, new TANDialog(WaitForTAN), false, camtVersion.camt052, new DateTime(2019, 1, 1), DateTime.Now);
-            var transactions = results.Data?.SelectMany(x => x.transactions);
+            var results = await new TransactionsCamt()
+                .ExecuteAsync(context, new TANDialog(WaitForTAN), false, camtVersion.camt052, new DateTime(2019, 1, 1), DateTime.Now);
 
+            var transactions = results.Data?.SelectMany(x => x.transactions);
+            foreach (var trans in transactions)
+            {
+                Console.WriteLine($"{trans.inputDate}\t{trans.partnerName}\t{trans.text}\t{trans.amount}");
+            }
             Console.ReadLine();
             //HBCIOutput(.Messages);
         }
