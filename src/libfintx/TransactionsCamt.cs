@@ -30,11 +30,29 @@ using System.Threading.Tasks;
 
 namespace libfintx
 {
+
     public class TransactionsCamt : TransactionClass
     {
+        private readonly ConnectionContext context;
+        private readonly TANDialog tanDialog;
+        private readonly bool anonymous;
+        private readonly camtVersion camtVers;
+        private readonly DateTime? startDate;
+        private readonly DateTime? endDate;
+        private readonly bool saveCamtFile;
+        private readonly int status = 0;
 
-
-
+        public TransactionsCamt(ConnectionContext context, bool anonymous, camtVersion camtVers,
+            DateTime? startDate = null, DateTime? endDate = null, bool saveCamtFile = false)
+        {
+            this.context = context;
+            this.anonymous = anonymous;
+            this.camtVers = camtVers;
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.saveCamtFile = saveCamtFile;
+        }
+        
         /// <summary>
         /// Account transactions in camt format
         /// </summary>
@@ -45,8 +63,7 @@ namespace libfintx
         /// <returns>
         /// Transactions
         /// </returns>
-        public async Task<HBCIDialogResult<List<TStatement>>> ExecuteAsync(ConnectionContext context, TANDialog tanDialog, bool anonymous, camtVersion camtVers,
-            DateTime? startDate = null, DateTime? endDate = null, bool saveCamtFile = false)
+        public async Task<HBCIDialogResult<List<TStatement>>> ExecuteAsync(TANDialog tanDialog)
         {
             // --- Step1
             HBCIDialogResult result = await Init(context, anonymous);
@@ -81,7 +98,7 @@ namespace libfintx
             // ---/Step3
         }
 
-        private async Task<HBCIDialogResult<List<TStatement>>> Process(ConnectionContext context, HBCIDialogResult result, camtVersion camtVers, bool saveCamtFile, string startDateStr, string endDateStr)
+        private async Task<HBCIDialogResult<List<TStatement>>> Process(ConnectionContext context)
         {
             var BankCode = result.RawData;
             List<TStatement> statements = new List<TStatement>();

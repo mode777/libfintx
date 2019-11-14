@@ -20,7 +20,7 @@ namespace libfintx.Sample
                 IBAN = "DE07765500000760794644",
                 Url = "https://banking-by1.s-fints-pt-by.de/fints30",
                 UserId = "760794644",
-                Pin = "xxxxx",
+                Pin = "xxxx",
                 HBCIVersion = 300,
                 BIC = "BYLADEM1ANS"
             };
@@ -48,8 +48,8 @@ namespace libfintx.Sample
             HBCIOutput(balance.Messages);
             Console.WriteLine(balance.Data.Balance);
 
-            var results = await new TransactionsCamt()
-                .ExecuteAsync(context, new TANDialog(WaitForTAN), false, camtVersion.camt052, new DateTime(2019, 1, 1), DateTime.Now);
+            var results = await new TransactionsCamt(context, false, camtVersion.camt052, new DateTime(2019, 1, 1), DateTime.Now)
+                .ExecuteAsync(new TANDialog(WaitForTAN));
 
             var transactions = results.Data?.SelectMany(x => x.transactions);
             foreach (var trans in transactions)
