@@ -8,7 +8,6 @@ namespace libfintx.Data
 {
     public class ConnectionContext
     {
-        public TransactionState TransactionState { get; set; }
         public UPD UPD { get; set; } = new UPD();
         public BPD BPD { get; set; } = new BPD();
         public List<TANProcess> TANProcesses { get; set; }

@@ -40,7 +40,11 @@ namespace libfintx
         private readonly DateTime? startDate;
         private readonly DateTime? endDate;
         private readonly bool saveCamtFile;
-        private readonly int status = 0;
+        private readonly string camt;
+        private readonly string startDateStr;
+        private readonly string endDateStr;
+        private int state = 0;
+        private HBCIDialogResult<List<TStatement>> result = null;
 
         public TransactionsCamt(ConnectionContext context, bool anonymous, camtVersion camtVers,
             DateTime? startDate = null, DateTime? endDate = null, bool saveCamtFile = false)
@@ -51,6 +55,9 @@ namespace libfintx
             this.startDate = startDate;
             this.endDate = endDate;
             this.saveCamtFile = saveCamtFile;
+            this.camt = string.Empty;
+            this.startDateStr = startDate?.ToString("yyyyMMdd");
+            this.endDateStr = endDate?.ToString("yyyyMMdd");
         }
         
         /// <summary>
@@ -63,42 +70,82 @@ namespace libfintx
         /// <returns>
         /// Transactions
         /// </returns>
-        public async Task<HBCIDialogResult<List<TStatement>>> ExecuteAsync(TANDialog tanDialog)
+        public async Task<HBCIDialogResult<List<TStatement>>> ExecuteAsync(string tan = null)
         {
-            // --- Step1
-            HBCIDialogResult result = await Init(context, anonymous);
-            if (!result.IsSuccess)
-                return result.TypedResult<List<TStatement>>();
-
-            result = await ProcessSCA(context, result, tanDialog);
-            if (!result.IsSuccess)
-                return result.TypedResult<List<TStatement>>();
-            // ---/Step1
-            
-            // ---Step2
-            // Plain camt message
-            var camt = string.Empty;
-
-            var startDateStr = startDate?.ToString("yyyyMMdd");
-            var endDateStr = endDate?.ToString("yyyyMMdd");
-
-            // Success
-            var BankCode = await Transaction.HKCAZ(context, startDateStr, endDateStr, null, camtVers);
-            result = new HBCIDialogResult<List<TStatement>>(Helper.Parse_BankCode(BankCode), BankCode);
-            if (!result.IsSuccess)
-                return result.TypedResult<List<TStatement>>();
-
-            result = await ProcessSCA(context, result, tanDialog);
-            if (!result.IsSuccess)
-                return result.TypedResult<List<TStatement>>();
-            // ---/Step2
-
-            // ---Step3
-            return await Process(context, result, camtVers, saveCamtFile, startDateStr, endDateStr);
-            // ---/Step3
+            switch (state)
+            {
+                case 0:
+                    result = (await Init(context, anonymous)).TypedResult<List<TStatement>>(); 
+                    
+                    if (!result.IsSuccess)
+                    {
+                        state = -1;
+                        return result;
+                    }
+                    else if (result.IsSCARequired)
+                    {
+                        state++;
+                        return result;
+                    }
+                    else
+                    {
+                        state += 2;
+                        return await ExecuteAsync(tan);
+                    }
+                case 1:
+                    if(tan == null)
+                    {
+                        result = (await HKEND(context)).TypedResult<List<TStatement>>();
+                        state = -1;
+                        return result;
+                    }
+                    else
+                    {
+                        result = (await TAN(context, tan)).TypedResult<List<TStatement>>();
+                        state++;
+                        return await ExecuteAsync();
+                    }
+                case 2:
+                    var BankCode = await Transaction.HKCAZ(context, startDateStr, endDateStr, null, camtVers);
+                    result = new HBCIDialogResult<List<TStatement>>(Helper.Parse_BankCode(BankCode), BankCode);
+                    if (!result.IsSuccess)
+                    {
+                        state = -1;
+                        return result;
+                    }
+                    else if (result.IsSCARequired)
+                    {
+                        state++;
+                        return result;
+                    }
+                    else
+                    {
+                        state += 2;
+                        return await ExecuteAsync(tan);
+                    }
+                case 3:
+                    if (tan == null)
+                    {
+                        result = (await HKEND(context)).TypedResult<List<TStatement>>();
+                        state = -1;
+                        return result;
+                    }
+                    else
+                    {
+                        result = (await TAN(context, tan)).TypedResult<List<TStatement>>();
+                        state++;
+                        return await ExecuteAsync();
+                    }
+                case 4:
+                    result = await Process();
+                    state++;
+                    return result;
+                default:
+                    return result;
+            }
         }
 
-        private async Task<HBCIDialogResult<List<TStatement>>> Process(ConnectionContext context)
+        private async Task<HBCIDialogResult<List<TStatement>>> Process()
         {
             var BankCode = result.RawData;
             List<TStatement> statements = new List<TStatement>();

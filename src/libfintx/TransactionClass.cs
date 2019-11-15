@@ -81,24 +81,29 @@ namespace libfintx
             return new HBCIDialogResult<string>(messages, BankCode, context.Segment.HISYN);
         }
 
-        protected async Task<HBCIDialogResult> ProcessSCA(ConnectionContext context, HBCIDialogResult result, TANDialog tanDialog)
-        {
-            tanDialog.DialogResult = result;
-            if (result.IsSCARequired)
-            {
-                var tan = Helper.WaitForTAN(context, result, tanDialog);
-                if (tan == null)
-                {
-                    var BankCode = await Transaction.HKEND(context, context.Segment.HNHBK);
-                    result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
-                }
-                else
-                {
-                    result = await TAN(context, tan);
-                }
-            }
+        //protected async Task<HBCIDialogResult> ProcessSCA(ConnectionContext context, HBCIDialogResult result, TANDialog tanDialog)
+        //{
+        //    tanDialog.DialogResult = result;
+        //    if (result.IsSCARequired)
+        //    {
+        //        var tan = Helper.WaitForTAN(context, result, tanDialog);
+        //        if (tan == null)
+        //        {
 
-            return result;
+        //        }
+        //        else
+        //        {
+        //            result = await TAN(context, tan);
+        //        }
+        //    }
+
+        //    return result;
+        //}
+
+        protected async Task<HBCIDialogResult> HKEND(ConnectionContext context)
+        {
+            var BankCode = await Transaction.HKEND(context, context.Segment.HNHBK);
+            return new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
         }
 
         /// <summary>

@@ -20,7 +20,7 @@ namespace libfintx.Sample
                 IBAN = "DE07765500000760794644",
                 Url = "https://banking-by1.s-fints-pt-by.de/fints30",
                 UserId = "760794644",
-                Pin = "xxxx",
+                Pin = "xxxxx",
                 HBCIVersion = 300,
                 BIC = "BYLADEM1ANS"
             };
@@ -48,13 +48,24 @@ namespace libfintx.Sample
             HBCIOutput(balance.Messages);
             Console.WriteLine(balance.Data.Balance);
 
-            var results = await new TransactionsCamt(context, false, camtVersion.camt052, new DateTime(2019, 1, 1), DateTime.Now)
-                .ExecuteAsync(new TANDialog(WaitForTAN));
+            HBCIDialogResult<List<TStatement>> result = null;
+            var trans = new TransactionsCamt(context, false, camtVersion.camt052, new DateTime(2019, 1, 1), DateTime.Now);
+            string tan = null;
 
-            var transactions = results.Data?.SelectMany(x => x.transactions);
-            foreach (var trans in transactions)
+            do
             {
-                Console.WriteLine($"{trans.inputDate}\t{trans.partnerName}\t{trans.text}\t{trans.amount}");
+                result = await trans.ExecuteAsync(tan);
+                if (result.IsSCARequired)
+                {
+                    Console.WriteLine("Enter TAN:");
+                    tan = Console.ReadLine();
+                }
+            } while (result.IsSCARequired);
+                                   
+            var entries = result.Data?.SelectMany(x => x.transactions);
+            foreach (var entry in entries)
+            {
+                Console.WriteLine($"{entry.inputDate}\t{entry.partnerName}\t{entry.text}\t{entry.amount}");
             }
             Console.ReadLine();
             //HBCIOutput(.Messages);
