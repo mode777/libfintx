@@ -46,6 +46,8 @@ namespace libfintx
         private int state = 0;
         private HBCIDialogResult<List<TStatement>> result = null;
 
+
+
         public TransactionsCamt(ConnectionContext context, bool anonymous, camtVersion camtVers,
             DateTime? startDate = null, DateTime? endDate = null, bool saveCamtFile = false)
         {
@@ -70,7 +72,7 @@ namespace libfintx
         /// <returns>
         /// Transactions
         /// </returns>
-        public async Task<HBCIDialogResult<List<TStatement>>> ExecuteAsync(string tan = null)
+        public override async Task<HBCIDialogResult> ExecuteAsync(string tan = null)
         {
             switch (state)
             {
@@ -138,6 +140,7 @@ namespace libfintx
                     }
                 case 4:
                     result = await Process();
+                    TriggerFinish(result);
                     state++;
                     return result;
                 default:

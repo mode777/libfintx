@@ -22,12 +22,20 @@
  */
 
 using libfintx.Data;
+using System;
 using System.Threading.Tasks;
 
 namespace libfintx
 {
-    public class TransactionClass
+    public abstract class TransactionClass
     {
+        public event EventHandler<HBCIDialogResult> OnComplete;
+
+        protected void TriggerFinish(HBCIDialogResult result)
+        {
+            OnComplete?.Invoke(this, result);
+        }
+
         protected async Task<HBCIDialogResult> Init(ConnectionContext context, bool anonymous)
         {
             if (context.SegmentId == null)
@@ -121,5 +129,8 @@ namespace libfintx
 
             return result;
         }
+
+        public abstract Task<HBCIDialogResult> ExecuteAsync(string tan = null);
+        
     }
 }
