@@ -30,12 +30,10 @@ using System.Threading.Tasks;
 
 namespace libfintx
 {
-
-    public class TransactionsCamt : TransactionClass
+    public class MyTransactionCamt : BaseMyTransaction
     {
-        private readonly ConnectionContext context;
+
         private readonly TANDialog tanDialog;
-        private readonly bool anonymous;
         private readonly camtVersion camtVers;
         private readonly DateTime? startDate;
         private readonly DateTime? endDate;
@@ -44,15 +42,11 @@ namespace libfintx
         private readonly string startDateStr;
         private readonly string endDateStr;
         private int state = 0;
-        private HBCIDialogResult<List<TStatement>> result = null;
 
-
-
-        public TransactionsCamt(ConnectionContext context, bool anonymous, camtVersion camtVers,
-            DateTime? startDate = null, DateTime? endDate = null, bool saveCamtFile = false)
+        public MyTransactionCamt(ConnectionContext context, camtVersion camtVers,
+            DateTime? startDate = null, DateTime? endDate = null, bool saveCamtFile = false) 
+            : base(context)
         {
-            this.context = context;
-            this.anonymous = anonymous;
             this.camtVers = camtVers;
             this.startDate = startDate;
             this.endDate = endDate;
@@ -61,96 +55,16 @@ namespace libfintx
             this.startDateStr = startDate?.ToString("yyyyMMdd");
             this.endDateStr = endDate?.ToString("yyyyMMdd");
         }
-        
-        /// <summary>
-        /// Account transactions in camt format
-        /// </summary>
-        /// <param name="context">context object must atleast contain the fields: Url, HBCIVersion, UserId, Pin, Blz, Account, IBAN, BIC</param>  
-        /// <param name="anonymous"></param>
-        /// <param name="startDate"></param>
-        /// <param name="endDate"></param>
-        /// <returns>
-        /// Transactions
-        /// </returns>
-        public override async Task<HBCIDialogResult> ExecuteAsync(string tan = null)
+
+        protected override async Task<HBCIDialogResult> InitTransaction()
         {
-            switch (state)
-            {
-                case 0:
-                    result = (await Init(context, anonymous)).TypedResult<List<TStatement>>(); 
-                    
-                    if (!result.IsSuccess)
-                    {
-                        state = -1;
-                        return result;
-                    }
-                    else if (result.IsSCARequired)
-                    {
-                        state++;
-                        return result;
-                    }
-                    else
-                    {
-                        state += 2;
-                        return await ExecuteAsync(tan);
-                    }
-                case 1:
-                    if(tan == null)
-                    {
-                        result = (await HKEND(context)).TypedResult<List<TStatement>>();
-                        state = -1;
-                        return result;
-                    }
-                    else
-                    {
-                        result = (await TAN(context, tan)).TypedResult<List<TStatement>>();
-                        state++;
-                        return await ExecuteAsync();
-                    }
-                case 2:
-                    var BankCode = await Transaction.HKCAZ(context, startDateStr, endDateStr, null, camtVers);
-                    result = new HBCIDialogResult<List<TStatement>>(Helper.Parse_BankCode(BankCode), BankCode);
-                    if (!result.IsSuccess)
-                    {
-                        state = -1;
-                        return result;
-                    }
-                    else if (result.IsSCARequired)
-                    {
-                        state++;
-                        return result;
-                    }
-                    else
-                    {
-                        state += 2;
-                        return await ExecuteAsync(tan);
-                    }
-                case 3:
-                    if (tan == null)
-                    {
-                        result = (await HKEND(context)).TypedResult<List<TStatement>>();
-                        state = -1;
-                        return result;
-                    }
-                    else
-                    {
-                        result = (await TAN(context, tan)).TypedResult<List<TStatement>>();
-                        state++;
-                        return await ExecuteAsync();
-                    }
-                case 4:
-                    result = await Process();
-                    TriggerFinish(result);
-                    state++;
-                    return result;
-                default:
-                    return result;
-            }
+            var BankCode = await Transaction.HKCAZ(Context, startDateStr, endDateStr, null, camtVers);
+            return new HBCIDialogResult<List<TStatement>>(Helper.Parse_BankCode(BankCode), BankCode);
         }
 
-        private async Task<HBCIDialogResult<List<TStatement>>> Process()
+        protected override async Task<HBCIDialogResult> FinishTransaction()
         {
-            var BankCode = result.RawData;
+            var BankCode = Result.RawData;
             List<TStatement> statements = new List<TStatement>();
 
             TCAM052TParser CAMT052Parser = null;
@@ -179,7 +93,7 @@ namespace libfintx
                         if (saveCamtFile)
                         {
                             // Save camt052 statement to file
-                            var camt052f = camt052File.Save(context.Account, camt, encoding);
+                            var camt052f = camt052File.Save(Context.Account, camt, encoding);
 
                             // Process the camt052 file
                             CAMT052Parser.ProcessFile(camt052f);
@@ -198,7 +112,7 @@ namespace libfintx
                         if (saveCamtFile)
                         {
                             // Save camt053 statement to file
-                            var camt053f = camt053File.Save(context.Account, camt, encoding);
+                            var camt053f = camt053File.Save(Context.Account, camt, encoding);
 
                             // Process the camt053 file
                             CAMT053Parser.ProcessFile(camt053f);
@@ -222,12 +136,12 @@ namespace libfintx
             while (BankCode_.Contains("+3040::"))
             {
                 string Startpoint = new Regex(@"\+3040::[^:]+:(?<startpoint>[^']+)'").Match(BankCode_).Groups["startpoint"].Value;
-                BankCode_ = await Transaction.HKCAZ(context, startDateStr, endDateStr, Startpoint, camtVers);
-                result = new HBCIDialogResult<List<TStatement>>(Helper.Parse_BankCode(BankCode_), BankCode_);
-                if (!result.IsSuccess)
-                    return result.TypedResult<List<TStatement>>();
+                BankCode_ = await Transaction.HKCAZ(Context, startDateStr, endDateStr, Startpoint, camtVers);
+                Result = new HBCIDialogResult<List<TStatement>>(Helper.Parse_BankCode(BankCode_), BankCode_);
+                if (!Result.IsSuccess)
+                    return Result.TypedResult<List<TStatement>>();
 
-                BankCode_ = result.RawData;
+                BankCode_ = Result.RawData;
 
                 // Es kann sein, dass in der payload mehrere Dokumente enthalten sind
                 xmlStartIdx = BankCode_.IndexOf("<?xml version=");
@@ -244,7 +158,7 @@ namespace libfintx
                     {
                         case camtVersion.camt052:
                             // Save camt052 statement to file
-                            var camt052f_ = camt052File.Save(context.Account, camt);
+                            var camt052f_ = camt052File.Save(Context.Account, camt);
 
                             // Process the camt052 file
                             CAMT052Parser.ProcessFile(camt052f_);
@@ -254,7 +168,7 @@ namespace libfintx
                             break;
                         case camtVersion.camt053:
                             // Save camt053 statement to file
-                            var camt053f_ = camt053File.Save(context.Account, camt);
+                            var camt053f_ = camt053File.Save(Context.Account, camt);
 
                             // Process the camt053 file
                             CAMT053Parser.ProcessFile(camt053f_);
@@ -270,7 +184,7 @@ namespace libfintx
                 }
             }
 
-            return result.TypedResult(statements);
+            return Result.TypedResult(statements);
         }
     }
 }
