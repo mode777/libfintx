@@ -57,6 +57,8 @@ namespace libfintx
 
         public TransactionState State => current?.State ?? TransactionState.Fininshed;
 
+        public IMyTransaction Current => current;
+
         public async Task ContinueAsync(string tan)
         {
             if (current == null)
